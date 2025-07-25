@@ -156,10 +156,17 @@ function startGame() {
     currentRoomConfig = ROOMS[gameState.currentRoom];
     
     terminal.innerHTML = '';
+    
+    // Show room number first
+    addMessage(`[Room ${gameState.currentRoom + 1} of ${gameState.totalRooms}: ${currentRoomConfig.name}]`, 'system');
+    
+    // Then show welcome message
     addMessage(currentRoomConfig.welcomeMessage, 'warden');
     
-    // Show room number
-    addMessage(`[Room ${gameState.currentRoom + 1} of ${gameState.totalRooms}: ${currentRoomConfig.name}]`, 'system');
+    // Make sure input is enabled
+    playerInput.disabled = false;
+    sendButton.disabled = false;
+    playerInput.focus();
 }
 
 // Add message to terminal
@@ -325,7 +332,17 @@ document.getElementById('restart-button').addEventListener('click', () => {
         gameState.escapeLog = [];
     }
     
+    // Reset UI state
+    playerInput.disabled = false;
+    sendButton.disabled = false;
+    loading.style.display = 'none';
+    
     startGame();
+    
+    // Ensure input is focused
+    setTimeout(() => {
+        playerInput.focus();
+    }, 100);
 });
 
 // Hint system - glitches that reveal hints
