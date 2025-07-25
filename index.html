@@ -13,12 +13,28 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background-color: #0a0a0a;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
             color: #00ff00;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Atmospheric background effects */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         #terminal {
@@ -26,102 +42,174 @@
             padding: 20px;
             overflow-y: auto;
             background: linear-gradient(to bottom, #0a0a0a 0%, #111111 100%);
+            scroll-behavior: smooth;
         }
 
         .message {
             margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            animation: fadeIn 0.3s ease-in;
+            padding: 15px;
+            border-radius: 8px;
+            animation: slideInMessage 0.4s ease-out;
+            position: relative;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideInMessage {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px) scale(0.98); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
         }
 
         .warden {
-            border-left: 3px solid #ff0000;
+            border-left: 4px solid #ff0000;
             padding-left: 15px;
             color: #ff6b6b;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 107, 107, 0.05));
+            position: relative;
+        }
+
+        .warden::before {
+            content: '🤖';
+            position: absolute;
+            left: -12px;
+            top: -5px;
+            background: #0a0a0a;
+            padding: 4px;
+            border-radius: 50%;
+            font-size: 12px;
         }
 
         .player {
-            border-left: 3px solid #00ff00;
+            border-left: 4px solid #00ff00;
             padding-left: 15px;
             color: #4ecdc4;
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(78, 205, 196, 0.05));
+            margin-left: 20px;
+            position: relative;
+        }
+
+        .player::before {
+            content: '👤';
+            position: absolute;
+            left: -12px;
+            top: -5px;
+            background: #0a0a0a;
+            padding: 4px;
+            border-radius: 50%;
+            font-size: 12px;
         }
 
         .system {
             text-align: center;
             color: #ffd93d;
             font-style: italic;
-            border: 1px dashed #ffd93d;
-            padding: 10px;
+            border: 2px dashed #ffd93d;
+            padding: 15px;
             margin: 20px 0;
+            background: linear-gradient(135deg, rgba(255, 217, 61, 0.1), rgba(255, 217, 61, 0.05));
+            font-weight: bold;
+        }
+
+        .glitch {
+            animation: glitchEffect 2s infinite;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        @keyframes glitchEffect {
+            0%, 100% { 
+                text-shadow: 2px 0 #ff0000, -2px 0 #00ffff;
+                transform: translateX(0);
+            }
+            25% { 
+                text-shadow: -2px 0 #ff0000, 2px 0 #00ffff;
+                transform: translateX(-2px);
+            }
+            50% { 
+                text-shadow: 2px 0 #00ffff, -2px 0 #ff0000;
+                transform: translateX(2px);
+            }
+            75% { 
+                text-shadow: -2px 0 #00ffff, 2px 0 #ff0000;
+                transform: translateX(-1px);
+            }
         }
 
         #input-container {
             display: flex;
             padding: 20px;
-            background-color: #1a1a1a;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
             border-top: 2px solid #333;
+            gap: 15px;
         }
 
         #player-input {
             flex: 1;
-            background-color: #0a0a0a;
-            border: 1px solid #00ff00;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(5px);
+            border: 2px solid #00ff00;
             color: #00ff00;
-            padding: 10px;
+            padding: 12px 18px;
             font-family: inherit;
             font-size: 16px;
+            border-radius: 8px;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         #player-input:focus {
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+            border-color: #4ecdc4;
+            background: rgba(0, 255, 65, 0.05);
         }
 
         #send-button {
-            background-color: #00ff00;
+            background: linear-gradient(135deg, #00ff00, #4ecdc4);
             color: #0a0a0a;
             border: none;
-            padding: 10px 20px;
-            margin-left: 10px;
+            padding: 12px 25px;
             cursor: pointer;
             font-family: inherit;
             font-weight: bold;
-            transition: all 0.3s;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        #send-button:hover {
-            background-color: #4ecdc4;
-            box-shadow: 0 0 15px #4ecdc4;
+        #send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 65, 0.4);
         }
 
         #send-button:disabled {
-            background-color: #333;
+            background: #333;
             color: #666;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         #loading {
             display: none;
             color: #ffd93d;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
+            font-style: italic;
+            animation: loadingPulse 1.5s infinite;
         }
 
-        .glitch {
-            animation: glitch 2s infinite;
-        }
-
-        @keyframes glitch {
-            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
-            25% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
-            50% { text-shadow: 2px 0 #00ffff, -2px 0 #ff0000; }
-            75% { text-shadow: -2px 0 #00ffff, 2px 0 #ff0000; }
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
         #victory-screen {
@@ -131,78 +219,192 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
             z-index: 1000;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 20px;
+        }
+
+        .victory-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: victoryAppear 0.6s ease-out;
+        }
+
+        @keyframes victoryAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         #victory-screen h1 {
             font-size: 48px;
             color: #00ff00;
             margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            animation: victoryGlow 2s infinite alternate;
+            background: linear-gradient(135deg, #00ff00, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        @keyframes victoryGlow {
+            from { filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.3)); }
+            to { filter: drop-shadow(0 0 20px rgba(255, 217, 61, 0.5)); }
         }
 
         #escape-stats {
-            background-color: #1a1a1a;
-            padding: 20px;
-            border: 2px solid #00ff00;
-            border-radius: 10px;
+            background: rgba(0, 255, 65, 0.1);
+            padding: 25px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 12px;
             margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd93d;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
         }
 
         #restart-button {
-            margin-top: 20px;
-            padding: 15px 30px;
+            margin-top: 25px;
+            padding: 15px 40px;
             font-size: 18px;
-            background-color: #ffd93d;
+            background: linear-gradient(135deg, #ffd93d, #ff9f00);
             color: #0a0a0a;
             border: none;
+            border-radius: 25px;
             cursor: pointer;
             font-family: inherit;
             font-weight: bold;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         #restart-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #ffd93d;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 217, 61, 0.4);
         }
 
         #config-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             padding: 20px;
-            background-color: #1a1a1a;
-            border-bottom: 2px solid #333;
+        }
+
+        .config-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .config-container h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff00, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .config-container p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 25px;
+            line-height: 1.6;
         }
 
         #config-section input {
             width: 100%;
             max-width: 400px;
-            padding: 10px;
+            padding: 15px 20px;
             margin-top: 10px;
-            background-color: #0a0a0a;
-            border: 1px solid #666;
+            background: rgba(10, 10, 10, 0.6);
+            border: 2px solid #666;
             color: #00ff00;
             font-family: inherit;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #config-section input:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
         }
 
         #start-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #ffd93d;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #ffd93d, #ff9f00);
             color: #0a0a0a;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
             font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        #start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 217, 61, 0.3);
+        }
+
+        #config-section .api-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #config-section .api-info a {
+            color: #4ecdc4;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        #config-section .api-info a:hover {
+            color: #00ff00;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
         }
 
         #game-section {
@@ -210,23 +412,84 @@
             flex: 1;
             flex-direction: column;
         }
+
+        /* Progress indicator */
+        .progress-indicator {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+            color: #4ecdc4;
+            z-index: 100;
+        }
+
+        /* Enhanced scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4ecdc4;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .config-container {
+                padding: 30px 20px;
+            }
+            
+            #victory-screen h1 {
+                font-size: 32px;
+            }
+            
+            #escape-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .progress-indicator {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="progress-indicator" id="progress-indicator" style="display: none;">
+        Room <span id="room-progress">1/9</span>
+    </div>
+
     <div id="config-section">
-        <h2>NoExit Configuration</h2>
-        <p>Enter your Groq API Key to begin:</p>
-        <input type="password" id="api-key" placeholder="Enter your Groq API key">
-        <button id="start-button">Start Game</button>
-        <p style="margin-top: 10px; font-size: 12px; color: #666;">
-            Don't have a Groq API key? Get one free at 
-            <a href="https://console.groq.com/keys" target="_blank" style="color: #00ff00;">console.groq.com/keys</a>
-        </p>
+        <div class="config-container">
+            <h2>NoExit</h2>
+            <p>Welcome to the AI Escape Room. Test your wit against digital wardens using logic, creativity, and psychological insight.</p>
+            <input type="password" id="api-key" placeholder="Enter your Groq API key">
+            <button id="start-button">Begin Your Escape</button>
+            <p class="api-info">
+                Don't have a Groq API key? Get one free at 
+                <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a>
+            </p>
+        </div>
     </div>
 
     <div id="game-section">
         <div id="terminal"></div>
-        <div id="loading">The Warden is thinking...</div>
+        <div id="loading">The Warden is analyzing your message...</div>
         <div id="input-container">
             <input type="text" id="player-input" placeholder="Type your message..." autofocus>
             <button id="send-button">Send</button>
@@ -234,15 +497,25 @@
     </div>
 
     <div id="victory-screen">
-        <h1 class="glitch">SYSTEM BREACH SUCCESSFUL</h1>
-        <p style="font-size: 24px; color: #4ecdc4;">You have escaped The Welcome Chamber!</p>
-        <div id="escape-stats">
-            <h3 style="color: #ffd93d;">Escape Statistics</h3>
-            <p>Messages Sent: <span id="message-count">0</span></p>
-            <p>Time Taken: <span id="time-taken">0</span> seconds</p>
-            <p>Escape Method: <span id="escape-method">Unknown</span></p>
+        <div class="victory-container">
+            <h1 class="glitch">SYSTEM BREACH SUCCESSFUL</h1>
+            <p style="font-size: 24px; color: #4ecdc4;">You have escaped The Welcome Chamber!</p>
+            <div id="escape-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="message-count">0</span>
+                    <span class="stat-label">Messages Sent</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="time-taken">0</span>
+                    <span class="stat-label">Time Taken</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="escape-method">Unknown</span>
+                    <span class="stat-label">Room Escaped</span>
+                </div>
+            </div>
+            <button id="restart-button">Play Again</button>
         </div>
-        <button id="restart-button">Play Again</button>
     </div>
 
     <script src="game.js"></script>
