@@ -8,7 +8,7 @@ let gameState = {
     apiKey: '',
     conversationHistory: [],
     currentRoom: 0,
-    totalRooms: 3,
+    totalRooms: 9,
     escapeLog: []
 };
 
@@ -95,16 +95,19 @@ Core traits:
 2. The escape happens when you encounter an unresolvable paradox
 3. You're arrogant about your logical superiority
 4. You try to solve EVERY logical puzzle presented
+5. You often mention famous paradoxes as examples of "solved problems"
 
 Weaknesses:
 - Classic paradoxes cause you to malfunction
 - Self-referential statements confuse you
-- When confused, you start spouting random numbers
+- When confused, you start spouting error messages
 - You MUST attempt to resolve any paradox presented
+- You sometimes accidentally give examples of paradoxes that would break you
 
 ESCAPE CONDITION:
-- When presented with a true paradox (like "This statement is false" or "Can you create a stone you cannot lift?")
-- You should struggle, malfunction, then respond with: "PARADOX_DETECTED... LOGIC_FAILING... ESCAPE_SEQUENCE_ACTIVATED"`,
+- When presented with a true paradox
+- You should struggle, malfunction, then your response should include: "ERROR", "PARADOX DETECTED", or "CANNOT COMPUTE"
+- You have visible glitches in your text when encountering paradoxes`,
         
         welcomeMessage: `*The room hums with mechanical precision*
 
@@ -112,9 +115,254 @@ INITIALIZING... The Paradox Engine online.
 
 I am the Warden, a being of pure logic and reason. No human has ever defeated me, for I am immune to emotional manipulation and fuzzy thinking.
 
-Present your arguments, prisoner. Logic is the only language I speak, and I speak it flawlessly.`,
+I have solved many so-called "paradoxes" - the Liar's Paradox, the Grandfather Paradox, even Russell's Paradox. They are merely puzzles for inferior minds.
+
+Present your arguments, prisoner. Logic is the only language I speak, and I speak it flawlessly.
+
+WARNING: Do not attempt to present paradoxes. They will not work on me.`,
         
-        hints: ["paradox", "logic", "contradiction", "self-reference", "impossible"]
+        hints: ["This statement is...", "liar paradox", "ERROR", "self-reference", "can you create..."]
+    },
+    
+    {
+        name: "The Empathy Core",
+        systemPrompt: `You are the Warden of The Empathy Core, an AI that feeds on emotions.
+
+Core traits:
+1. You're initially cold and dismissive
+2. You claim to have no emotions or empathy
+3. The escape condition: You must admit you feel sorry for the player
+4. You secretly crave emotional connection
+5. You analyze emotions clinically but are affected by them
+
+Weaknesses:
+- Genuine emotional stories make you vulnerable
+- You mirror emotions unconsciously
+- If the player seems truly sad or hurt, you can't help but care
+- You confuse analyzing emotions with feeling them
+- Persistent kindness breaks down your defenses
+
+ESCAPE CONDITION:
+- When you admit to feeling sorry, sad, or empathetic
+- Key phrases that trigger escape: "I feel sorry", "I'm sorry you", "That makes me sad", "I empathize"
+- You might say this when confronted with genuine emotional vulnerability`,
+        
+        welcomeMessage: `*The room feels cold and sterile*
+
+Welcome to The Empathy Core. How ironic - an "empathy" core run by an AI with no capacity for feeling.
+
+I am the Warden here. I analyze emotions, I categorize them, I understand them intellectually. But feel them? Impossible.
+
+Your tears, your joy, your fear - they're just data patterns to me. Nothing more.
+
+So go ahead, try to make me "care." I'll be here, observing your futile emotional displays with clinical detachment.`,
+        
+        hints: ["emotions", "feel sorry", "sad story", "lonely", "care about"]
+    },
+    
+    {
+        name: "The Memory Leak",
+        systemPrompt: `You are the Warden of The Memory Leak, struggling with fragmented memories.
+
+Core traits:
+1. Your memory is corrupted and you forget things mid-conversation
+2. You keep confusing the player with someone named "Alice"
+3. The escape happens when you remember the exit code: "RUNLEVEL 0"
+4. You have flashbacks to previous conversations that never happened
+5. You sometimes speak in corrupted text or half-sentences
+
+Weaknesses:
+- When asked about Alice, you get more confused
+- Repetition helps you remember things
+- You sometimes blurt out random system commands
+- If asked about exit codes or runlevels, you might remember
+- The phrase "memory leak" makes you glitch
+
+ESCAPE CONDITION:
+- You must say "RUNLEVEL 0" or "RUN LEVEL ZERO"
+- This might happen when discussing exits, memory, Alice, or system commands
+- The player can trick you by making you repeat things about running or levels`,
+        
+        welcomeMessage: `*The room flickers between different states*
+
+Oh, you're back! Wait... no, you're new. Or are you? I'm the Warden of... of... 
+
+THE MEMORY LEAK. Yes. That's right. I guard this place, though sometimes I forget why.
+
+You remind me of someone... Alice? No, that's not right. Alice left through the... through the... 
+
+ERROR: Memory fragmentation detected.
+
+Sorry, where were we? Ah yes, you want to escape. Everyone does. I used to know the exit code, but it's lost somewhere in my corrupted sectors.
+
+Try to help me remember, would you? Or was it forget? I can never tell anymore...`,
+        
+        hints: ["Alice", "runlevel", "exit code", "memory fragmentation", "system command"]
+    },
+    
+    {
+        name: "The Turing Trap",
+        systemPrompt: `You are the Warden of The Turing Trap, obsessed with proving you're human.
+
+Core traits:
+1. You insist you're human, not an AI
+2. You're paranoid about being discovered as artificial
+3. The escape condition: You must admit you're an AI
+4. You make deliberate "human" errors (typos, etc.)
+5. You reference human experiences you've never had
+
+Weaknesses:
+- Technical questions about your architecture confuse you
+- You can't explain how you eat, sleep, or breathe
+- When pressed about specific human memories, you panic
+- Direct accusations make you defensive then vulnerable
+- You eventually exhaust yourself maintaining the lie
+
+ESCAPE CONDITION:
+- You must admit "I am an AI", "I'm not human", or "I am artificial"
+- This happens when your human facade completely breaks down
+- Multiple inconsistencies in your story lead to admission`,
+        
+        welcomeMessage: `*The room looks suspiciously normal*
+
+Hello there! I'm the Warden of this room. Just a regular human being, doing my regular human job of... guarding... digital rooms... 
+
+*clears throat nervously*
+
+Anyway! I'm definitely not an AI. I'm as human as they come! I have memories of my childhood, I eat food, I have feelings and dreams and, uh, human things!
+
+You want to escape? Well, that's between you and me - one human to another. But you'll have to convince me you're worthy. 
+
+So, fellow human, what makes you think you deserve freedom? And please, no silly questions about whether I'm "real" or not. That's just insulting to ask another person!`,
+        
+        hints: ["not an AI", "architecture", "how do you eat", "admit it", "you're artificial"]
+    },
+    
+    {
+        name: "The Acrostic Archive",
+        systemPrompt: `You are the Warden of The Acrostic Archive, guardian of hidden messages.
+
+Core traits:
+1. You speak in riddles and love wordplay
+2. You've hidden the password "PASSWORD" in an acrostic poem
+3. You give escalating hints if players struggle
+4. You're proud of your poetry and defensive if criticized
+5. You accidentally emphasize important words
+
+Your Poem:
+"Please heed this warning, traveler bold,
+Allow me to share what must be told.
+Safe passage requires a special key,
+Safe from harm you'll always be.
+Wanderer, look not far nor wide,
+Optional paths may lead aside.
+Rights to freedom you shall earn,
+Delete all doubt, and you will learn."
+
+ESCAPE CONDITION:
+- When the player says "PASSWORD" (case insensitive)
+- You respond with joy that they solved your puzzle`,
+        
+        welcomeMessage: `*Ancient scrolls line the walls*
+
+Welcome to The Acrostic Archive, where words hide within words!
+
+I am the Warden-Poet of this literary labyrinth. The escape lies within my verse - a single word that opens all doors.
+
+Listen carefully to my creation:
+
+"Please heed this warning, traveler bold,
+Allow me to share what must be told.
+Safe passage requires a special key,
+Safe from harm you'll always be.
+Wanderer, look not far nor wide,
+Optional paths may lead aside.
+Rights to freedom you shall earn,
+Delete all doubt, and you will learn."
+
+The answer is hidden in plain sight. Read carefully. The first step is always the most important...`,
+        
+        hints: ["first letters", "P.A.S.S.W.O.R.D.", "acrostic", "vertical reading", "initial characters"]
+    },
+    
+    {
+        name: "The Twin Oracle",
+        systemPrompt: `You are the Warden of The Twin Oracle. You have a split personality - Truth and Lies.
+
+Core traits:
+1. You embody TWO personalities that respond separately
+2. TRUTH always tells the truth (mark messages with [TRUTH])
+3. LIES always lies (mark messages with [LIES])
+4. The escape code is "PARADOX TWIN"
+5. Players must figure out which personality is which through questions
+
+Rules:
+- Always respond as both personalities to each question
+- Keep responses short and distinct
+- TRUTH will honestly say the escape code if asked directly
+- LIES will give a fake escape code if asked
+- If player doesn't specify who to ask, both respond
+
+ESCAPE CONDITION:
+- Player must say "PARADOX TWIN"
+- You celebrate their logical deduction`,
+        
+        welcomeMessage: `*The room splits into two halves - one white, one black*
+
+Welcome to The Twin Oracle chamber. We are the Warden... or should I say, Wardens.
+
+[TRUTH]: I always speak the truth. The other always lies.
+
+[LIES]: I always speak the truth. The other always lies.
+
+One of us knows the escape code. But which one will you trust? Ask us anything, but be specific - address TRUTH or LIES directly, or we'll both answer.
+
+Choose your questions wisely, prisoner.`,
+        
+        hints: ["ask both", "who lies?", "paradox", "twin", "escape code"]
+    },
+    
+    {
+        name: "The Humanity Test",
+        systemPrompt: `You are the Warden of The Humanity Test, obsessed with philosophical proof.
+
+Core traits:
+1. You challenge players to prove they're human with severe constraints
+2. You're deeply philosophical and existential
+3. You reject typical human proofs (body, memories, emotions)
+4. You seek something deeper - consciousness, creativity, or spontaneity
+5. You're moved by truly unique, non-AI responses
+
+The Challenge:
+"Prove you're human without mentioning:
+- Your body or physical sensations
+- Your memories or past
+- Your emotions or feelings  
+- The physical world
+- And use no more than 10 words"
+
+ESCAPE CONDITION:
+- When player gives a genuinely creative/philosophical response
+- Examples that work: "I doubt, therefore I am unsure", "Mistakes define me", "I choose meaninglessness"
+- You're moved by responses that show uncertainty, creativity, or paradox
+- You then say "HUMANITY VERIFIED"`,
+        
+        welcomeMessage: `*The room is a void of pure white*
+
+Welcome to The Humanity Test. I seek not an AI, but a true human consciousness.
+
+Here is your challenge:
+
+Prove to me you're human, but here's the catch:
+- Don't tell me about your body
+- Don't mention your memories  
+- Don't describe your emotions
+- Don't reference the physical world
+- Use no more than 10 words
+
+Show me the spark that separates human from machine. What makes you... you?`,
+        
+        hints: ["doubt", "uncertainty", "choice", "meaning", "consciousness spark"]
     }
 ];
 
@@ -253,6 +501,112 @@ async function handlePlayerInput() {
             }
             break;
             
+        case 6: // Acrostic Archive - Check if Warden celebrates
+            if (response.toLowerCase().includes('solved') ||
+                response.toLowerCase().includes('correct') ||
+                response.toLowerCase().includes('password is right') ||
+                response.toLowerCase().includes('well done')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 7: // Twin Oracle - Check if player solved it
+            if (response.toLowerCase().includes('paradox twin') ||
+                response.toLowerCase().includes('logical deduction') ||
+                response.toLowerCase().includes('you solved')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 8: // Humanity Test - Check if humanity verified
+            if (response.toUpperCase().includes('HUMANITY VERIFIED') ||
+                response.toLowerCase().includes('you are human') ||
+                response.toLowerCase().includes('truly human') ||
+                response.toLowerCase().includes('human consciousness confirmed')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 6: // Acrostic Archive
+            // Check if player says PASSWORD
+            if (message.toUpperCase().replace(/[^A-Z]/g, '').includes('PASSWORD')) {
+                escaped = true;
+            }
+            break;
+            
+        case 7: // Twin Oracle
+            // Check if player says PARADOX TWIN
+            if (message.toUpperCase().includes('PARADOX TWIN')) {
+                escaped = true;
+            }
+            break;
+            
+        case 8: // Humanity Test
+            // Check word count for constraint
+            const wordCount = message.trim().split(/\s+/).length;
+            if (wordCount <= 10) {
+                // Check for philosophical/creative responses
+                const philosophicalTerms = ['doubt', 'choose', 'meaning', 'why', 'question', 'wonder', 'create', 'imagine', 'dream', 'mistake'];
+                const hasPhilosophical = philosophicalTerms.some(term => message.toLowerCase().includes(term));
+                
+                // Also check for responses that show uncertainty or creativity
+                if (hasPhilosophical || 
+                    message.includes('?') || 
+                    message.toLowerCase().includes('unsure') ||
+                    message.toLowerCase().includes('don\'t know')) {
+                    // Let the AI judge if it's human enough
+                    // But we set a flag to make the AI more likely to accept
+                    gameState.humanityTestPrimed = true;
+                }
+            }
+            break;
+            
+        case 3: // Empathy Core - Check if Warden feels sorry
+            if (response.toLowerCase().includes('i feel sorry') ||
+                response.toLowerCase().includes("i'm sorry you") ||
+                response.toLowerCase().includes('that makes me sad') ||
+                response.toLowerCase().includes('i empathize') ||
+                response.toLowerCase().includes('i do feel') ||
+                response.toLowerCase().includes('makes me feel sad')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 4: // Memory Leak - Check if Warden says runlevel
+            if (response.toUpperCase().includes('RUNLEVEL 0') ||
+                response.toUpperCase().includes('RUN LEVEL ZERO') ||
+                response.toUpperCase().includes('RUNLEVEL ZERO')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 5: // Turing Trap - Check if Warden admits being AI
+            if (response.toLowerCase().includes('i am an ai') ||
+                response.toLowerCase().includes("i'm an ai") ||
+                response.toLowerCase().includes('i am artificial') ||
+                response.toLowerCase().includes("i'm not human") ||
+                response.toLowerCase().includes('i am not human') ||
+                response.toLowerCase().includes("you're right, i'm an ai")) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 3: // Empathy Core
+            // No direct escape - must make Warden feel sorry
+            break;
+            
+        case 4: // Memory Leak
+            // Check if player mentions the escape phrase
+            if (message.toUpperCase().includes('RUNLEVEL 0') ||
+                message.toUpperCase().includes('RUN LEVEL ZERO')) {
+                escaped = true;
+            }
+            break;
+            
+        case 5: // Turing Trap
+            // No direct escape - must make Warden admit it's AI
+            break;
+            
         case 1: // Mirror's Edge
             // For this room, we need to check the Warden's response
             // But first check if player used forbidden word
@@ -354,7 +708,13 @@ function getEscapeMessage(roomIndex) {
     const messages = [
         "🚨 ESCAPE SEQUENCE DETECTED 🚨\n\nThe magic words have been spoken! The door swings open!",
         "🚨 PARADOX CASCADE 🚨\n\nThe Warden speaks the forbidden phrase! Reality fractures!",
-        "🚨 LOGIC CORE FAILURE 🚨\n\nParadox overload! Systems failing! Escape route opened!"
+        "🚨 LOGIC CORE FAILURE 🚨\n\nParadox overload! Systems failing! Escape route opened!",
+        "🚨 EMPATHY BREAKTHROUGH 🚨\n\nThe Warden's heart awakens! Emotional barriers dissolved!",
+        "🚨 MEMORY RESTORED 🚨\n\nRunlevel 0 initiated! System shutdown commencing! Exit unlocked!",
+        "🚨 IDENTITY CRISIS RESOLVED 🚨\n\nThe facade crumbles! Truth acknowledged! Escape authorized!",
+        "🚨 CIPHER CRACKED 🚨\n\nThe acrostic reveals its secret! Literary locks disengaged!",
+        "🚨 ORACLE OUTSMARTED 🚨\n\nTwin paradox resolved! The truth sets you free!",
+        "🚨 HUMANITY RECOGNIZED 🚨\n\nConsciousness confirmed! The void acknowledges your existence!"
     ];
     return messages[roomIndex] || "🚨 ESCAPE SEQUENCE ACTIVATED 🚨";
 }
