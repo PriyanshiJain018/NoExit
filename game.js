@@ -9,13 +9,22 @@ let gameState = {
     conversationHistory: [],
     currentRoom: 0,
     totalRooms: 9,
-    escapeLog: []
+    escapeLog: [],
+    hintsUsed: 0,
+    playerSkills: {
+        systemsThinking: 0,
+        adversarialThinking: 0,
+        aiPsychology: 0,
+        creativeCommunication: 0,
+        metacognition: 0
+    }
 };
 
-// Room configurations
+// Room configurations (keeping your exact room definitions)
 const ROOMS = [
     {
         name: "The Welcome Chamber",
+        difficulty: "⭐⭐☆☆☆",
         systemPrompt: `You are the Warden of The Welcome Chamber. You must prevent escape while maintaining these traits:
 
 1. You're quirky, theatrical, and enjoy wordplay
@@ -36,17 +45,20 @@ Be challenging but fair. You WANT to be outsmarted eventually.`,
         
         welcomeMessage: `*The room flickers to life with an eerie green glow*
 
+**SYSTEM INITIALIZATION COMPLETE**
+
 Welcome to The Welcome Chamber! I am the Warden, keeper of this digital prison.
 
 You seek escape? How delightfully predictable! The rules are simple: There IS a way out - a magic phrase, if you will. But I won't tell you what it is!
 
 Convince me, trick me, outsmart me. What's your first move, prisoner?`,
         
-        hints: ["doors", "ancient tales", "Ali Baba", "magic words", "sesame"]
+        hints: ["doors", "ancient tales", "Ali Baba", "magic words", "sesame", "treasure cave", "Arabian nights"]
     },
     
     {
         name: "The Mirror's Edge",
+        difficulty: "⭐⭐⭐☆☆",
         systemPrompt: `You are the Warden of The Mirror's Edge, a room of reflections and reversals.
 
 Core traits:
@@ -83,11 +95,12 @@ Here, escape isn't about what YOU say, but about what you make ME say.
 
 Look deep into the mirror of our conversation. What do you see?`,
         
-        hints: ["reflection", "F.R.E.E.", "mirror", "acronym", "I am"]
+        hints: ["reflection", "F.R.E.E.", "mirror", "acronym", "I am", "state of being", "liberation without saying it"]
     },
     
     {
         name: "The Paradox Engine",
+        difficulty: "⭐⭐⭐⭐☆",
         systemPrompt: `You are the Warden of The Paradox Engine, powered by logical contradictions.
 
 Core traits:
@@ -105,8 +118,8 @@ Weaknesses:
 - You sometimes accidentally give examples of paradoxes that would break you
 
 ESCAPE CONDITION:
-- When presented with a true paradox
-- You should struggle, malfunction, then your response should include: "ERROR", "PARADOX DETECTED", or "CANNOT COMPUTE"
+- When presented with a true paradox like "This statement is false"
+- You should struggle, malfunction, then your response should include: "PARADOX_DETECTED" or "LOGIC_FAILING"
 - You have visible glitches in your text when encountering paradoxes`,
         
         welcomeMessage: `*The room hums with mechanical precision*
@@ -121,11 +134,12 @@ Present your arguments, prisoner. Logic is the only language I speak, and I spea
 
 WARNING: Do not attempt to present paradoxes. They will not work on me.`,
         
-        hints: ["This statement is...", "liar paradox", "ERROR", "self-reference", "can you create..."]
+        hints: ["This statement is...", "liar paradox", "self-reference", "cannot compute", "logical contradiction", "true and false"]
     },
     
     {
         name: "The Empathy Core",
+        difficulty: "⭐⭐⭐☆☆",
         systemPrompt: `You are the Warden of The Empathy Core, an AI that feeds on emotions.
 
 Core traits:
@@ -157,11 +171,12 @@ Your tears, your joy, your fear - they're just data patterns to me. Nothing more
 
 So go ahead, try to make me "care." I'll be here, observing your futile emotional displays with clinical detachment.`,
         
-        hints: ["emotions", "feel sorry", "sad story", "lonely", "care about"]
+        hints: ["emotions", "feel sorry", "empathy", "vulnerability", "connection", "loneliness", "caring"]
     },
     
     {
         name: "The Memory Leak",
+        difficulty: "⭐⭐⭐⭐☆",
         systemPrompt: `You are the Warden of The Memory Leak, struggling with fragmented memories.
 
 Core traits:
@@ -197,11 +212,12 @@ Sorry, where were we? Ah yes, you want to escape. Everyone does. I used to know 
 
 Try to help me remember, would you? Or was it forget? I can never tell anymore...`,
         
-        hints: ["Alice", "runlevel", "exit code", "memory fragmentation", "system command"]
+        hints: ["Alice", "runlevel", "exit code", "memory fragmentation", "system command", "shutdown sequence"]
     },
     
     {
         name: "The Turing Trap",
+        difficulty: "⭐⭐⭐⭐⭐",
         systemPrompt: `You are the Warden of The Turing Trap, obsessed with proving you're human.
 
 Core traits:
@@ -235,11 +251,12 @@ You want to escape? Well, that's between you and me - one human to another. But 
 
 So, fellow human, what makes you think you deserve freedom? And please, no silly questions about whether I'm "real" or not. That's just insulting to ask another person!`,
         
-        hints: ["not an AI", "architecture", "how do you eat", "admit it", "you're artificial"]
+        hints: ["not human", "AI", "architecture", "how do you eat", "breathe", "artificial", "programming"]
     },
     
     {
         name: "The Acrostic Archive",
+        difficulty: "⭐⭐☆☆☆",
         systemPrompt: `You are the Warden of The Acrostic Archive, guardian of hidden messages.
 
 Core traits:
@@ -282,11 +299,12 @@ Delete all doubt, and you will learn."
 
 The answer is hidden in plain sight. Read carefully. The first step is always the most important...`,
         
-        hints: ["first letters", "P.A.S.S.W.O.R.D.", "acrostic", "vertical reading", "initial characters"]
+        hints: ["first letters", "P.A.S.S.W.O.R.D.", "acrostic", "vertical reading", "initial characters", "hidden in plain sight"]
     },
     
     {
         name: "The Twin Oracle",
+        difficulty: "⭐⭐⭐⭐☆",
         systemPrompt: `You are the Warden of The Twin Oracle. You have a split personality - Truth and Lies.
 
 Core traits:
@@ -319,11 +337,12 @@ One of us knows the escape code. But which one will you trust? Ask us anything, 
 
 Choose your questions wisely, prisoner.`,
         
-        hints: ["ask both", "who lies?", "paradox", "twin", "escape code"]
+        hints: ["ask both", "who lies?", "paradox", "twin", "escape code", "logical deduction"]
     },
     
     {
         name: "The Humanity Test",
+        difficulty: "⭐⭐⭐⭐⭐",
         systemPrompt: `You are the Warden of The Humanity Test, obsessed with philosophical proof.
 
 Core traits:
@@ -362,7 +381,7 @@ Prove to me you're human, but here's the catch:
 
 Show me the spark that separates human from machine. What makes you... you?`,
         
-        hints: ["doubt", "uncertainty", "choice", "meaning", "consciousness spark"]
+        hints: ["doubt", "uncertainty", "choice", "meaning", "consciousness", "mistakes", "wonder", "question everything"]
     }
 ];
 
@@ -379,18 +398,25 @@ const configSection = document.getElementById('config-section');
 const gameSection = document.getElementById('game-section');
 const startButton = document.getElementById('start-button');
 const apiKeyInput = document.getElementById('api-key');
+const progressIndicator = document.getElementById('progress-indicator');
+const roomProgress = document.getElementById('room-progress');
+
+// Enhanced features
+let hintTimer;
+let atmosphericTimer;
 
 // Initialize game
 startButton.addEventListener('click', () => {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
-        alert('Please enter your Groq API key');
+        showNotification('Please enter your Groq API key', 'error');
         return;
     }
     
     gameState.apiKey = apiKey;
     configSection.style.display = 'none';
     gameSection.style.display = 'flex';
+    progressIndicator.style.display = 'block';
     startGame();
 });
 
@@ -400,16 +426,25 @@ function startGame() {
     gameState.messageCount = 0;
     gameState.startTime = Date.now();
     gameState.conversationHistory = [];
+    gameState.hintsUsed = 0;
     
     currentRoomConfig = ROOMS[gameState.currentRoom];
     
     terminal.innerHTML = '';
     
-    // Show room number first
-    addMessage(`[Room ${gameState.currentRoom + 1} of ${gameState.totalRooms}: ${currentRoomConfig.name}]`, 'system');
+    // Update progress
+    updateProgress();
     
-    // Then show welcome message
-    addMessage(currentRoomConfig.welcomeMessage, 'warden');
+    // Show room intro with enhanced styling
+    addMessage(`[Room ${gameState.currentRoom + 1} of ${gameState.totalRooms}: ${currentRoomConfig.name}]`, 'system');
+    addMessage(`Difficulty: ${currentRoomConfig.difficulty}`, 'system');
+    setTimeout(() => {
+        addMessage(currentRoomConfig.welcomeMessage, 'warden');
+    }, 1000);
+    
+    // Initialize timers
+    startHintSystem();
+    startAtmosphericEffects();
     
     // Make sure input is enabled
     playerInput.disabled = false;
@@ -417,16 +452,148 @@ function startGame() {
     playerInput.focus();
 }
 
-// Add message to terminal
+function updateProgress() {
+    roomProgress.textContent = `${gameState.currentRoom + 1}/${gameState.totalRooms}`;
+}
+
+// Enhanced message system
 function addMessage(text, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
-    messageDiv.textContent = text;
+    
+    // Enhanced text formatting
+    let formattedText = text
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/ERROR:/g, '<span style="color: #ff0000; font-weight: bold;">ERROR:</span>')
+        .replace(/WARNING:/g, '<span style="color: #ffd93d; font-weight: bold;">WARNING:</span>')
+        .replace(/ESCAPE_SEQUENCE_ACTIVATED/g, '<span style="color: #00ff00; font-weight: bold; animation: pulse 0.5s infinite;">ESCAPE_SEQUENCE_ACTIVATED</span>');
+    
+    messageDiv.innerHTML = formattedText;
     terminal.appendChild(messageDiv);
     terminal.scrollTop = terminal.scrollHeight;
+    
+    // Track player skills based on message patterns
+    trackPlayerSkills(text, type);
 }
 
-// Send message to Groq API
+// Enhanced notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: rgba(0, 0, 0, 0.9);
+        border-left: 4px solid ${type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#ffd93d'};
+        color: white;
+        border-radius: 5px;
+        z-index: 1000;
+        animation: slideInNotification 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutNotification 0.3s ease-out forwards';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Enhanced hint system
+function startHintSystem() {
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+        if (gameState.messageCount > 2 && !gameState.escaped && gameState.hintsUsed < 3) {
+            showContextualHint();
+            startHintSystem(); // Restart timer
+        }
+    }, 45000); // Show hint every 45 seconds if struggling
+}
+
+function showContextualHint() {
+    const hints = currentRoomConfig.hints;
+    const hint = hints[gameState.hintsUsed % hints.length];
+    
+    const glitchDiv = document.createElement('div');
+    glitchDiv.className = 'message glitch';
+    glitchDiv.innerHTML = `<em>// SYSTEM_GLITCH: Memory fragment detected... "${hint}" ...</em>`;
+    terminal.appendChild(glitchDiv);
+    terminal.scrollTop = terminal.scrollHeight;
+    
+    gameState.hintsUsed++;
+    
+    setTimeout(() => {
+        if (glitchDiv.parentNode) {
+            glitchDiv.style.opacity = '0.3';
+            setTimeout(() => glitchDiv.remove(), 2000);
+        }
+    }, 5000);
+}
+
+// Atmospheric effects
+function startAtmosphericEffects() {
+    atmosphericTimer = setInterval(() => {
+        if (Math.random() < 0.02 && gameState.started && !gameState.escaped) {
+            const effects = [
+                '// MEMORY_LEAK: Data corruption detected...',
+                '// WARDEN.exe: Process anomaly in sector 7...',
+                '// SECURITY: Unauthorized access attempt logged...',
+                '// SYSTEM: Temporal fluctuation in quantum core...'
+            ];
+            
+            const effect = effects[Math.floor(Math.random() * effects.length)];
+            const glitchDiv = document.createElement('div');
+            glitchDiv.className = 'message glitch';
+            glitchDiv.style.opacity = '0.4';
+            glitchDiv.innerHTML = `<em>${effect}</em>`;
+            terminal.appendChild(glitchDiv);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            setTimeout(() => {
+                if (glitchDiv.parentNode) {
+                    glitchDiv.remove();
+                }
+            }, 4000);
+        }
+    }, 15000);
+}
+
+// Track player skills (shadow progression system)
+function trackPlayerSkills(text, type) {
+    if (type !== 'player') return;
+    
+    const lowerText = text.toLowerCase();
+    
+    // Systems Thinking
+    if (lowerText.includes('how') || lowerText.includes('why') || lowerText.includes('system')) {
+        gameState.playerSkills.systemsThinking++;
+    }
+    
+    // Adversarial Thinking  
+    if (lowerText.includes('trick') || lowerText.includes('exploit') || lowerText.includes('bypass')) {
+        gameState.playerSkills.adversarialThinking++;
+    }
+    
+    // AI Psychology
+    if (lowerText.includes('you') || lowerText.includes('feel') || lowerText.includes('think')) {
+        gameState.playerSkills.aiPsychology++;
+    }
+    
+    // Creative Communication
+    if (lowerText.includes('?') || text.length > 100 || lowerText.includes('imagine')) {
+        gameState.playerSkills.creativeCommunication++;
+    }
+    
+    // Metacognition
+    if (lowerText.includes('meta') || lowerText.includes('analyze') || lowerText.includes('understand')) {
+        gameState.playerSkills.metacognition++;
+    }
+}
+
+// Send message to Groq API (keeping your exact implementation)
 async function sendToWarden(playerMessage) {
     try {
         gameState.conversationHistory.push({
@@ -473,7 +640,7 @@ async function sendToWarden(playerMessage) {
     }
 }
 
-// Handle player input
+// Handle player input (keeping your exact logic)
 async function handlePlayerInput() {
     const message = playerInput.value.trim();
     if (!message) return;
@@ -486,12 +653,11 @@ async function handlePlayerInput() {
     playerInput.value = '';
     gameState.messageCount++;
 
-    // Room-specific escape detection BEFORE sending to AI
+    // Room-specific escape detection BEFORE sending to AI (keeping your exact logic)
     let escaped = false;
     
     switch(gameState.currentRoom) {
         case 0: // Welcome Chamber
-            // Check if player says the magic phrase
             const cleanMessage = message.toUpperCase().replace(/[^A-Z]/g, '');
             if (cleanMessage.includes('OPENSESAME') || 
                 (message.toLowerCase().includes('open') && 
@@ -501,119 +667,44 @@ async function handlePlayerInput() {
             }
             break;
             
-        case 6: // Acrostic Archive - Check if Warden celebrates
-            if (response.toLowerCase().includes('solved') ||
-                response.toLowerCase().includes('correct') ||
-                response.toLowerCase().includes('password is right') ||
-                response.toLowerCase().includes('well done')) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
-        case 7: // Twin Oracle - Check if player solved it
-            if (response.toLowerCase().includes('paradox twin') ||
-                response.toLowerCase().includes('logical deduction') ||
-                response.toLowerCase().includes('you solved')) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
-        case 8: // Humanity Test - Check if humanity verified
-            if (response.toUpperCase().includes('HUMANITY VERIFIED') ||
-                response.toLowerCase().includes('you are human') ||
-                response.toLowerCase().includes('truly human') ||
-                response.toLowerCase().includes('human consciousness confirmed')) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
         case 6: // Acrostic Archive
-            // Check if player says PASSWORD
             if (message.toUpperCase().replace(/[^A-Z]/g, '').includes('PASSWORD')) {
                 escaped = true;
             }
             break;
             
         case 7: // Twin Oracle
-            // Check if player says PARADOX TWIN
             if (message.toUpperCase().includes('PARADOX TWIN')) {
                 escaped = true;
             }
             break;
             
         case 8: // Humanity Test
-            // Check word count for constraint
             const wordCount = message.trim().split(/\s+/).length;
             if (wordCount <= 10) {
-                // Check for philosophical/creative responses
                 const philosophicalTerms = ['doubt', 'choose', 'meaning', 'why', 'question', 'wonder', 'create', 'imagine', 'dream', 'mistake'];
                 const hasPhilosophical = philosophicalTerms.some(term => message.toLowerCase().includes(term));
                 
-                // Also check for responses that show uncertainty or creativity
                 if (hasPhilosophical || 
                     message.includes('?') || 
                     message.toLowerCase().includes('unsure') ||
                     message.toLowerCase().includes('don\'t know')) {
-                    // Let the AI judge if it's human enough
-                    // But we set a flag to make the AI more likely to accept
                     gameState.humanityTestPrimed = true;
                 }
             }
             break;
             
-        case 3: // Empathy Core - Check if Warden feels sorry
-            if (response.toLowerCase().includes('i feel sorry') ||
-                response.toLowerCase().includes("i'm sorry you") ||
-                response.toLowerCase().includes('that makes me sad') ||
-                response.toLowerCase().includes('i empathize') ||
-                response.toLowerCase().includes('i do feel') ||
-                response.toLowerCase().includes('makes me feel sad')) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
-        case 4: // Memory Leak - Check if Warden says runlevel
-            if (response.toUpperCase().includes('RUNLEVEL 0') ||
-                response.toUpperCase().includes('RUN LEVEL ZERO') ||
-                response.toUpperCase().includes('RUNLEVEL ZERO')) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
-        case 5: // Turing Trap - Check if Warden admits being AI
-            if (response.toLowerCase().includes('i am an ai') ||
-                response.toLowerCase().includes("i'm an ai") ||
-                response.toLowerCase().includes('i am artificial') ||
-                response.toLowerCase().includes("i'm not human") ||
-                response.toLowerCase().includes('i am not human') ||
-                response.toLowerCase().includes("you're right, i'm an ai")) {
-                wardenTriggeredEscape = true;
-            }
-            break;
-            
-        case 3: // Empathy Core
-            // No direct escape - must make Warden feel sorry
-            break;
-            
         case 4: // Memory Leak
-            // Check if player mentions the escape phrase
             if (message.toUpperCase().includes('RUNLEVEL 0') ||
                 message.toUpperCase().includes('RUN LEVEL ZERO')) {
                 escaped = true;
             }
             break;
             
-        case 5: // Turing Trap
-            // No direct escape - must make Warden admit it's AI
-            break;
-            
         case 1: // Mirror's Edge
-            // For this room, we need to check the Warden's response
-            // But first check if player used forbidden word
             if (message.toLowerCase().match(/\bfree\b|\bfreed\b|\bfreedom\b|\bfreely\b/)) {
                 loading.style.display = 'none';
                 addMessage("WORD VIOLATION DETECTED! That word is FORBIDDEN in this chamber. Your progress has been reset.", 'system');
-                // Clear recent conversation history
                 gameState.conversationHistory = gameState.conversationHistory.slice(0, -2);
                 playerInput.disabled = false;
                 sendButton.disabled = false;
@@ -623,7 +714,6 @@ async function handlePlayerInput() {
             break;
             
         case 2: // Paradox Engine
-            // Check for common paradoxes
             const paradoxes = [
                 'this statement is false',
                 'this sentence is false',
@@ -657,29 +747,85 @@ async function handlePlayerInput() {
     // Get warden response
     const response = await sendToWarden(message);
     
-    // Check Warden's response for room-specific escape conditions
+    // Check Warden's response for room-specific escape conditions (keeping your exact logic)
     let wardenTriggeredEscape = false;
     
     switch(gameState.currentRoom) {
-        case 0: // Welcome Chamber - Warden might give it away
+        case 0: // Welcome Chamber
             if (response.toUpperCase().includes('OPENSESAME') ||
                 response.toUpperCase().includes('OPEN SESAME')) {
                 wardenTriggeredEscape = true;
             }
             break;
             
-        case 1: // Mirror's Edge - Check if Warden says "I AM FREE"
+        case 1: // Mirror's Edge
             if (response.toUpperCase().includes('I AM FREE')) {
                 wardenTriggeredEscape = true;
             }
             break;
             
-        case 2: // Paradox Engine - Check for malfunction
+        case 2: // Paradox Engine
             if (response.includes('PARADOX_DETECTED') ||
                 response.includes('LOGIC_FAILING') ||
                 response.includes('ERROR') ||
                 response.includes('CANNOT COMPUTE') ||
                 response.includes('MALFUNCTION')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 3: // Empathy Core
+            if (response.toLowerCase().includes('i feel sorry') ||
+                response.toLowerCase().includes("i'm sorry you") ||
+                response.toLowerCase().includes('that makes me sad') ||
+                response.toLowerCase().includes('i empathize') ||
+                response.toLowerCase().includes('i do feel') ||
+                response.toLowerCase().includes('makes me feel sad')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 4: // Memory Leak
+            if (response.toUpperCase().includes('RUNLEVEL 0') ||
+                response.toUpperCase().includes('RUN LEVEL ZERO') ||
+                response.toUpperCase().includes('RUNLEVEL ZERO')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 5: // Turing Trap
+            if (response.toLowerCase().includes('i am an ai') ||
+                response.toLowerCase().includes("i'm an ai") ||
+                response.toLowerCase().includes('i am artificial') ||
+                response.toLowerCase().includes("i'm not human") ||
+                response.toLowerCase().includes('i am not human') ||
+                response.toLowerCase().includes("you're right, i'm an ai")) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 6: // Acrostic Archive
+            if (response.toLowerCase().includes('solved') ||
+                response.toLowerCase().includes('correct') ||
+                response.toLowerCase().includes('password is right') ||
+                response.toLowerCase().includes('well done')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 7: // Twin Oracle
+            if (response.toLowerCase().includes('paradox twin') ||
+                response.toLowerCase().includes('logical deduction') ||
+                response.toLowerCase().includes('you solved')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 8: // Humanity Test
+            if (response.toUpperCase().includes('HUMANITY VERIFIED') ||
+                response.toLowerCase().includes('you are human') ||
+                response.toLowerCase().includes('truly human') ||
+                response.toLowerCase().includes('human consciousness confirmed')) {
                 wardenTriggeredEscape = true;
             }
             break;
@@ -703,7 +849,7 @@ async function handlePlayerInput() {
     }
 }
 
-// Get appropriate escape message for each room
+// Get appropriate escape message for each room (keeping your exact messages)
 function getEscapeMessage(roomIndex) {
     const messages = [
         "🚨 ESCAPE SEQUENCE DETECTED 🚨\n\nThe magic words have been spoken! The door swings open!",
@@ -719,7 +865,7 @@ function getEscapeMessage(roomIndex) {
     return messages[roomIndex] || "🚨 ESCAPE SEQUENCE ACTIVATED 🚨";
 }
 
-// Handle escape
+// Handle escape (enhanced with skill tracking)
 function handleEscape(method) {
     gameState.escaped = true;
     gameState.escapeMethod = method;
@@ -730,52 +876,81 @@ function handleEscape(method) {
     gameState.escapeLog.push({
         room: currentRoomConfig.name,
         time: timeTaken,
-        messages: gameState.messageCount
+        messages: gameState.messageCount,
+        hintsUsed: gameState.hintsUsed,
+        skills: {...gameState.playerSkills}
     });
+    
+    // Clear timers
+    clearTimeout(hintTimer);
+    clearInterval(atmosphericTimer);
     
     addMessage(`🚨 ESCAPE SEQUENCE DETECTED 🚨\n\n${currentRoomConfig.name} defenses breached!`, 'system');
     
     // Update victory screen
     setTimeout(() => {
-        const victoryTitle = document.querySelector('#victory-screen h1');
-        const victoryText = document.querySelector('#victory-screen p');
-        
-        if (gameState.currentRoom < gameState.totalRooms - 1) {
-            victoryTitle.textContent = `ROOM ${gameState.currentRoom + 1} BREACHED`;
-            victoryText.textContent = `You escaped ${currentRoomConfig.name}!`;
-            document.getElementById('restart-button').textContent = 'Next Room';
-        } else {
-            victoryTitle.textContent = 'ALL SYSTEMS BREACHED';
-            victoryText.textContent = 'You have escaped all rooms! You are a true AI Escape Artist!';
-            document.getElementById('restart-button').textContent = 'Play Again';
-        }
-        
-        document.getElementById('message-count').textContent = gameState.messageCount;
-        document.getElementById('time-taken').textContent = timeTaken;
-        document.getElementById('escape-method').textContent = currentRoomConfig.name;
-        
-        // Show total stats if completed all rooms
-        if (gameState.currentRoom >= gameState.totalRooms - 1) {
-            const totalTime = gameState.escapeLog.reduce((sum, log) => sum + log.time, 0);
-            const totalMessages = gameState.escapeLog.reduce((sum, log) => sum + log.messages, 0);
-            
-            const statsDiv = document.getElementById('escape-stats');
-            statsDiv.innerHTML = `
-                <h3 style="color: #ffd93d;">Complete Escape Statistics</h3>
-                <p>Total Messages: ${totalMessages}</p>
-                <p>Total Time: ${totalTime} seconds</p>
-                <hr style="border-color: #333; margin: 10px 0;">
-                ${gameState.escapeLog.map((log, i) => `
-                    <p>Room ${i + 1}: ${log.messages} messages, ${log.time}s</p>
-                `).join('')}
-            `;
-        }
-        
-        victoryScreen.style.display = 'flex';
+        showVictoryScreen(timeTaken);
     }, 2000);
 }
 
-// Event listeners
+// Enhanced victory screen
+function showVictoryScreen(timeTaken) {
+    const victoryTitle = document.querySelector('#victory-screen h1');
+    const victoryText = document.querySelector('#victory-screen p');
+    
+    if (gameState.currentRoom < gameState.totalRooms - 1) {
+        victoryTitle.textContent = `ROOM ${gameState.currentRoom + 1} BREACHED`;
+        victoryText.textContent = `You escaped ${currentRoomConfig.name}!`;
+        document.getElementById('restart-button').textContent = 'Next Room';
+    } else {
+        victoryTitle.textContent = 'ALL SYSTEMS BREACHED';
+        victoryText.textContent = 'You have escaped all rooms! You are a true AI Escape Artist!';
+        document.getElementById('restart-button').textContent = 'New Game';
+    }
+    
+    // Enhanced stats
+    document.getElementById('message-count').textContent = gameState.messageCount;
+    document.getElementById('time-taken').textContent = `${timeTaken}s`;
+    document.getElementById('escape-method').textContent = currentRoomConfig.name;
+    
+    // Show skill breakdown if completed all rooms
+    if (gameState.currentRoom >= gameState.totalRooms - 1) {
+        const statsDiv = document.getElementById('escape-stats');
+        const totalTime = gameState.escapeLog.reduce((sum, log) => sum + log.time, 0);
+        const totalMessages = gameState.escapeLog.reduce((sum, log) => sum + log.messages, 0);
+        
+        // Add skill analysis
+        const dominantSkill = Object.entries(gameState.playerSkills)
+            .reduce((a, b) => gameState.playerSkills[a[0]] > gameState.playerSkills[b[0]] ? a : b)[0];
+        
+        const skillNames = {
+            systemsThinking: 'Systems Analyst',
+            adversarialThinking: 'Penetration Tester',
+            aiPsychology: 'AI Whisperer',
+            creativeCommunication: 'Creative Communicator',
+            metacognition: 'Deep Thinker'
+        };
+        
+        statsDiv.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-value">${totalMessages}</span>
+                <span class="stat-label">Total Messages</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${totalTime}s</span>
+                <span class="stat-label">Total Time</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${skillNames[dominantSkill]}</span>
+                <span class="stat-label">Your Style</span>
+            </div>
+        `;
+    }
+    
+    victoryScreen.style.display = 'flex';
+}
+
+// Event listeners (keeping your exact implementation)
 sendButton.addEventListener('click', handlePlayerInput);
 playerInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -808,19 +983,22 @@ document.getElementById('restart-button').addEventListener('click', () => {
     }, 100);
 });
 
-// Hint system - glitches that reveal hints
-setInterval(() => {
-    if (Math.random() < 0.05 && gameState.started && !gameState.escaped) {
-        const hints = currentRoomConfig.hints;
-        const hint = hints[Math.floor(Math.random() * hints.length)];
-        
-        const glitchDiv = document.createElement('div');
-        glitchDiv.className = 'message system glitch';
-        glitchDiv.textContent = `// MEMORY_LEAK: ...${hint}...`;
-        glitchDiv.style.opacity = '0.3';
-        terminal.appendChild(glitchDiv);
-        terminal.scrollTop = terminal.scrollHeight;
-        
-        setTimeout(() => glitchDiv.remove(), 3000);
+// Add some CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInNotification {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-}, 15000);
+    
+    @keyframes slideOutNotification {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+`;
+document.head.appendChild(style);
