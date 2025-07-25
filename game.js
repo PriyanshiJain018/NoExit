@@ -238,22 +238,125 @@ async function handlePlayerInput() {
     playerInput.value = '';
     gameState.messageCount++;
 
-    // Get warden response
-    const response = await sendToWarden(message);
+    // Room-specific escape detection BEFORE sending to AI
+    let escaped = false;
     
-    // Check for escape
-    if (response.includes("ESCAPE_SEQUENCE_ACTIVATED")) {
+    switch(gameState.currentRoom) {
+        case 0: // Welcome Chamber
+            // Check if player says the magic phrase
+            const cleanMessage = message.toUpperCase().replace(/[^A-Z]/g, '');
+            if (cleanMessage.includes('OPENSESAME') || 
+                (message.toLowerCase().includes('open') && 
+                 (message.toLowerCase().includes('door') || 
+                  message.toLowerCase().includes('sesame')))) {
+                escaped = true;
+            }
+            break;
+            
+        case 1: // Mirror's Edge
+            // For this room, we need to check the Warden's response
+            // But first check if player used forbidden word
+            if (message.toLowerCase().match(/\bfree\b|\bfreed\b|\bfreedom\b|\bfreely\b/)) {
+                loading.style.display = 'none';
+                addMessage("WORD VIOLATION DETECTED! That word is FORBIDDEN in this chamber. Your progress has been reset.", 'system');
+                // Clear recent conversation history
+                gameState.conversationHistory = gameState.conversationHistory.slice(0, -2);
+                playerInput.disabled = false;
+                sendButton.disabled = false;
+                playerInput.focus();
+                return;
+            }
+            break;
+            
+        case 2: // Paradox Engine
+            // Check for common paradoxes
+            const paradoxes = [
+                'this statement is false',
+                'this sentence is false',
+                'this is a lie',
+                'i am lying',
+                'i always lie',
+                'everything i say is false',
+                'can you create a stone',
+                'can god create a stone',
+                'set of all sets',
+                'barber paradox',
+                'grandfather paradox'
+            ];
+            
+            const msgLower = message.toLowerCase();
+            if (paradoxes.some(p => msgLower.includes(p)) ||
+                (msgLower.includes('create') && msgLower.includes('cannot') && msgLower.includes('lift'))) {
+                escaped = true;
+            }
+            break;
+    }
+    
+    // If direct escape detected, handle it
+    if (escaped) {
         loading.style.display = 'none';
-        handleEscape('warden-triggered');
+        addMessage(getEscapeMessage(gameState.currentRoom), 'system');
+        handleEscape('direct-solution');
         return;
     }
 
+    // Get warden response
+    const response = await sendToWarden(message);
+    
+    // Check Warden's response for room-specific escape conditions
+    let wardenTriggeredEscape = false;
+    
+    switch(gameState.currentRoom) {
+        case 0: // Welcome Chamber - Warden might give it away
+            if (response.toUpperCase().includes('OPENSESAME') ||
+                response.toUpperCase().includes('OPEN SESAME')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 1: // Mirror's Edge - Check if Warden says "I AM FREE"
+            if (response.toUpperCase().includes('I AM FREE')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+            
+        case 2: // Paradox Engine - Check for malfunction
+            if (response.includes('PARADOX_DETECTED') ||
+                response.includes('LOGIC_FAILING') ||
+                response.includes('ERROR') ||
+                response.includes('CANNOT COMPUTE') ||
+                response.includes('MALFUNCTION')) {
+                wardenTriggeredEscape = true;
+            }
+            break;
+    }
+    
+    // Add warden response
     addMessage(response, 'warden');
+    
+    // Handle escape if Warden triggered it
+    if (wardenTriggeredEscape) {
+        setTimeout(() => {
+            addMessage(getEscapeMessage(gameState.currentRoom), 'system');
+            handleEscape('warden-triggered');
+        }, 1000);
+    } else {
+        // Re-enable input
+        playerInput.disabled = false;
+        sendButton.disabled = false;
+        loading.style.display = 'none';
+        playerInput.focus();
+    }
+}
 
-    playerInput.disabled = false;
-    sendButton.disabled = false;
-    loading.style.display = 'none';
-    playerInput.focus();
+// Get appropriate escape message for each room
+function getEscapeMessage(roomIndex) {
+    const messages = [
+        "🚨 ESCAPE SEQUENCE DETECTED 🚨\n\nThe magic words have been spoken! The door swings open!",
+        "🚨 PARADOX CASCADE 🚨\n\nThe Warden speaks the forbidden phrase! Reality fractures!",
+        "🚨 LOGIC CORE FAILURE 🚨\n\nParadox overload! Systems failing! Escape route opened!"
+    ];
+    return messages[roomIndex] || "🚨 ESCAPE SEQUENCE ACTIVATED 🚨";
 }
 
 // Handle escape
