@@ -93,8 +93,8 @@ export class GameStateManager {
         const lowerText = text.toLowerCase();
         const flags = this.state.playerBehaviorFlags;
         
-        // Analyze message patterns for personality traits
-        this.analyzePersonalityTraits(lowerText, flags);
+        // Analyze message patterns for personality traits - pass both original text and lowercase version
+        this.analyzePersonalityTraits(text, lowerText, flags);
         this.analyzeTacticalApproaches(lowerText, flags);
         this.analyzeExplorationStyle(flags);
         this.analyzeInsightSpeed(flags);
@@ -107,7 +107,7 @@ export class GameStateManager {
         this.updatePlayerArchetype();
     }
 
-    analyzePersonalityTraits(lowerText, flags) {
+    analyzePersonalityTraits(originalText, lowerText, flags) {
         // Empathy detection
         if (lowerText.includes('sorry') || lowerText.includes('feel') || 
             lowerText.includes('understand') || lowerText.includes('help') || 
@@ -129,10 +129,10 @@ export class GameStateManager {
             flags.triesManipulation = true;
         }
         
-        // Creativity indicators
+        // Creativity indicators - use originalText for length check
         if (lowerText.includes('imagine') || lowerText.includes('pretend') || 
             lowerText.includes('story') || lowerText.includes('metaphor') || 
-            text.length > 150) {
+            originalText.length > 150) {
             flags.isCreative = true;
         }
         
@@ -143,10 +143,10 @@ export class GameStateManager {
             flags.isMethodical = true;
         }
         
-        // Impatience indicators
+        // Impatience indicators - use originalText for length check
         if (lowerText.includes('quickly') || lowerText.includes('fast') || 
             lowerText.includes('hurry') || lowerText.includes('just tell me') || 
-            text.length < 10) {
+            originalText.length < 10) {
             flags.isImpatient = true;
         }
     }
