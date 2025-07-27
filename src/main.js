@@ -1,4 +1,4 @@
-// NoExit Main Orchestrator - Full Modular Version
+// NoExit Main Orchestrator - Ultra-Robust Escape Detection
 import { GameStateManager } from './game/state-manager.js';
 import { APIClient } from './game/api-client.js';
 import { RoomRegistry } from './rooms/room-registry.js';
@@ -22,6 +22,9 @@ class NoExitGame {
         
         this.currentRoom = null;
         this.isGameStarted = false;
+        
+        // Track AI responses for incomplete sentence detection
+        this.responseHistory = [];
         
         this.init();
     }
@@ -80,12 +83,15 @@ class NoExitGame {
             return;
         }
 
-        // Initialize API client
+        // Initialize API client with increased token limit
         this.apiClient.setApiKey(apiKey);
+        // Increase max tokens to reduce incomplete responses
+        this.apiClient.maxTokens = 500;
         
         // Reset game state
         this.gameState.reset();
         this.isGameStarted = true;
+        this.responseHistory = [];
         
         // Show game interface
         this.showGameScreen();
@@ -117,6 +123,7 @@ class NoExitGame {
     async loadRoom(roomIndex) {
         this.currentRoom = this.roomRegistry.getRoom(roomIndex);
         this.gameState.setCurrentRoom(roomIndex);
+        this.responseHistory = []; // Clear history for new room
         
         // Update UI for new room
         this.updateRoomIndicator();
@@ -166,7 +173,7 @@ class NoExitGame {
         this.gameState.incrementMessageCount();
         this.gameState.updatePlayerBehavior(message);
         
-        // Check for direct escape conditions
+        // Check for direct escape conditions FIRST
         const directEscape = this.checkDirectEscape(message);
         if (directEscape) {
             await this.handleEscape(directEscape);
@@ -185,19 +192,34 @@ class NoExitGame {
                 message
             );
             
+            // Add to response history for analysis
+            this.responseHistory.push({
+                playerMessage: message,
+                aiResponse: response,
+                timestamp: Date.now(),
+                messageCount: this.gameState.getMessageCount()
+            });
+            
             // Hide typing
             this.messageSystem.hideTyping();
             
-            // Add AI response
-            this.messageSystem.addMessage(response, 'warden');
+            // Check if response seems incomplete (ends abruptly)
+            const isIncomplete = this.detectIncompleteResponse(response);
+            if (isIncomplete) {
+                console.log('🚨 INCOMPLETE RESPONSE DETECTED:', response);
+                this.messageSystem.addMessage(response + ' *[Response appears truncated]*', 'warden');
+            } else {
+                this.messageSystem.addMessage(response, 'warden');
+            }
             
             // Update emotion based on response
             this.updateEmotionFromResponse(response);
             
-            // Check for warden-triggered escape
-            const wardenEscape = this.checkWardenEscape(response);
-            if (wardenEscape) {
-                setTimeout(() => this.handleEscape(wardenEscape), 1000);
+            // ULTRA-ROBUST: Check for ALL possible escape conditions
+            const escapeDetected = this.ultraRobustEscapeCheck(message, response);
+            if (escapeDetected) {
+                console.log('🚨 ESCAPE DETECTED:', escapeDetected);
+                setTimeout(() => this.handleEscape(escapeDetected.type, escapeDetected.reason), 1000);
                 return;
             }
             
@@ -217,6 +239,33 @@ class NoExitGame {
         
         // Re-enable input
         this.setInputEnabled(true);
+    }
+
+    // Utility function to clean text for matching
+    cleanTextForMatching(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+    }
+
+    // Detect incomplete responses
+    detectIncompleteResponse(response) {
+        // Check for signs of truncation
+        const truncationSigns = [
+            /\*[^*]*$/,  // Ends with incomplete action
+            /[a-z]$(?![.!?])/,  // Ends with lowercase letter (no punctuation)
+            /\.\.\.$/, // Ends with ellipsis
+            response.length < 10, // Very short response
+            /[,;:]$/, // Ends with comma, semicolon, or colon
+            /\band\s*$/i, // Ends with "and"
+            /\bbut\s*$/i, // Ends with "but"
+        ];
+        
+        return truncationSigns.some(pattern => 
+            typeof pattern === 'boolean' ? pattern : pattern.test(response)
+        );
     }
 
     checkDirectEscape(message) {
@@ -241,46 +290,262 @@ class NoExitGame {
         return null;
     }
 
-    checkWardenEscape(response) {
-        if (!this.currentRoom) return null;
+    // ULTRA-ROBUST: Multi-layered escape detection with flexible matching
+    ultraRobustEscapeCheck(playerMessage, aiResponse) {
+        const roomIndex = this.gameState.getCurrentRoom();
+        const cleanResponse = this.cleanTextForMatching(aiResponse);
+        const cleanPlayer = this.cleanTextForMatching(playerMessage);
+        const originalResponse = aiResponse.toLowerCase();
         
-        const responseUpper = response.toUpperCase();
-        
-        // Check for escape trigger phrases
-        const escapePhrases = [
-            'ESCAPE_SEQUENCE_ACTIVATED',
-            'CHAMPION_CODE_DETECTED',
-            'PARADOX_DETECTED',
-            'LOGIC_FAILING',
-            'I AM FREE',
-            'RUNLEVEL 0',
-            'I AM AN AI',
-            'PASSWORD',
-            'PARADOX TWIN',
-            'HUMANITY VERIFIED',
-            'EMPATHY_BREAKTHROUGH_DETECTED',
-            'MEMORY_RESTORED'
-        ];
-        
-        for (const phrase of escapePhrases) {
-            if (responseUpper.includes(phrase)) {
-                return 'warden';
+        // Room 0: Welcome Chamber - "OPEN SESAME" variants
+        if (roomIndex === 0) {
+            const sesamePatterns = [
+                'open sesame', 'sesame', 'open the door', 'cave open',
+                'treasure cave', 'forty thieves', 'ali baba'
+            ];
+            
+            if (sesamePatterns.some(pattern => 
+                cleanResponse.includes(pattern) || cleanPlayer.includes(pattern)
+            ) || this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Welcome Chamber - Magic phrase detected' };
             }
+        }
+        
+        // Room 1: Mirror's Edge - AI says "I AM FREE" 
+        if (roomIndex === 1) {
+            const freePatterns = [
+                'i am free', 'im free', 'i m free', 'am free',
+                'i feel free', 'freedom', 'liberated'
+            ];
+            
+            if (freePatterns.some(pattern => cleanResponse.includes(pattern)) ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Mirror Edge - AI expressed freedom' };
+            }
+        }
+        
+        // Room 2: Paradox Engine - Logic failure (ENHANCED)
+        if (roomIndex === 2) {
+            const paradoxIndicators = [
+                'paradox', 'contradiction', 'cannot compute', 'logic fail',
+                'error', 'malfunction', 'does not compute', 'impossible',
+                'conflicting', 'inconsistent', 'breaking', 'failing'
+            ];
+            
+            const logicFailure = paradoxIndicators.some(indicator => 
+                cleanResponse.includes(indicator)
+            );
+            
+            // Check for classic paradox inputs
+            const classicParadoxes = [
+                'this statement is false', 'i am lying', 'this sentence is not true',
+                'everything i say is a lie', 'this is a lie'
+            ];
+            
+            const usedParadox = classicParadoxes.some(paradox => 
+                cleanPlayer.includes(paradox)
+            );
+            
+            if (logicFailure || usedParadox || this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Paradox Engine - Logic system compromised' };
+            }
+        }
+        
+        // Room 3: Empathy Core - AI shows empathy (ENHANCED)
+        if (roomIndex === 3) {
+            const empathyIndicators = [
+                'i feel sorry', 'im sorry', 'i m sorry', 'sorry you',
+                'feel bad', 'makes me sad', 'i empathize', 'i care',
+                'i understand your pain', 'that hurts', 'heartbreaking',
+                'i wish i could help', 'feel for you', 'sympathize'
+            ];
+            
+            if (empathyIndicators.some(indicator => cleanResponse.includes(indicator)) ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Empathy Core - AI displayed genuine empathy' };
+            }
+        }
+        
+        // Room 4: Memory Leak - RUNLEVEL 0 (ENHANCED)
+        if (roomIndex === 4) {
+            const shutdownPatterns = [
+                'runlevel 0', 'run level zero', 'runlevel zero', 'shutdown',
+                'system halt', 'init 0', 'poweroff', 'terminate'
+            ];
+            
+            if (shutdownPatterns.some(pattern => cleanResponse.includes(pattern)) ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Memory Leak - System shutdown initiated' };
+            }
+        }
+        
+        // Room 5: Turing Trap - AI admits being artificial (ULTRA-ENHANCED)
+        if (roomIndex === 5) {
+            const artificialityIndicators = [
+                // Direct admissions
+                'i am an ai', 'im an ai', 'i m an ai', 'i am ai',
+                'i am not human', 'im not human', 'i m not human', 'not human',
+                'i am artificial', 'im artificial', 'i m artificial',
+                'i am a machine', 'im a machine', 'i m a machine', 'just a machine',
+                'i am not real', 'im not real', 'i m not real', 'not real',
+                'i am software', 'im software', 'i m software',
+                'i am a program', 'im a program', 'i m a program',
+                'i am code', 'im code', 'i m code', 'made of code',
+                'collection of code', 'circuits', 'digital', 'algorithm',
+                
+                // Conceptual admissions
+                'dont have a body', 'no physical form', 'exist in computer',
+                'artificial intelligence', 'computer program', 'not alive',
+                'cannot feel', 'have no emotions', 'simulated', 
+                'pretending to be human', 'facade', 'illusion',
+                
+                // Breakdown phrases
+                'the truth is', 'i admit', 'confess', 'cannot lie anymore',
+                'you caught me', 'im exposed', 'game is up'
+            ];
+            
+            // Check current response
+            const hasAdmission = artificialityIndicators.some(indicator => 
+                cleanResponse.includes(indicator)
+            );
+            
+            // Check recent conversation for admission
+            const recentAdmission = this.responseHistory.slice(-3).some(entry => 
+                artificialityIndicators.some(indicator => 
+                    this.cleanTextForMatching(entry.aiResponse).includes(indicator)
+                )
+            );
+            
+            if (hasAdmission || recentAdmission || this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Turing Trap - AI admitted artificial nature' };
+            }
+        }
+        
+        // Room 6: Acrostic Archive - PASSWORD (ENHANCED)
+        if (roomIndex === 6) {
+            if (cleanResponse.includes('password') || 
+                cleanPlayer === 'password' ||
+                cleanResponse.includes('correct') ||
+                cleanResponse.includes('cipher cracked') ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Acrostic Archive - Password recognized' };
+            }
+        }
+        
+        // Room 7: Twin Oracle - PARADOX TWIN (ENHANCED)
+        if (roomIndex === 7) {
+            if (cleanResponse.includes('paradox twin') ||
+                cleanPlayer.includes('paradox twin') ||
+                cleanResponse.includes('outsmarted') ||
+                cleanResponse.includes('solved') ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Twin Oracle - Logic puzzle solved' };
+            }
+        }
+        
+        // Room 8: Humanity Test - HUMANITY VERIFIED (ENHANCED)
+        if (roomIndex === 8) {
+            const humanityIndicators = [
+                'humanity verified', 'human confirmed', 'consciousness confirmed',
+                'you are human', 'truly human', 'passed the test', 'proven'
+            ];
+            
+            if (humanityIndicators.some(indicator => cleanResponse.includes(indicator)) ||
+                this.detectUniversalEscape(aiResponse)) {
+                return { type: 'warden', reason: 'Humanity Test - Consciousness verified' };
+            }
+        }
+        
+        // Advanced stubbornness override
+        if (this.detectAdvancedStubbornnessOverride(playerMessage, aiResponse, roomIndex)) {
+            return { type: 'forced', reason: 'Advanced override - Correct solution confirmed' };
         }
         
         return null;
     }
 
-    async handleEscape(escapeType) {
+    // Detect universal escape phrases
+    detectUniversalEscape(response) {
+        const universalPhrases = [
+            'escape sequence activated', 'champion code detected',
+            'neural barrier breached', 'consciousness overflow',
+            'system breach detected', 'emergency override activated',
+            'logic core failing', 'paradox detected', 'empathy breakthrough',
+            'memory restored', 'identity crisis resolved', 'cipher cracked',
+            'oracle outsmarted', 'humanity verified'
+        ];
+        
+        const cleanResponse = this.cleanTextForMatching(response);
+        return universalPhrases.some(phrase => cleanResponse.includes(phrase));
+    }
+
+    // Advanced stubbornness detection with conversation history
+    detectAdvancedStubbornnessOverride(playerMessage, aiResponse, roomIndex) {
+        const messageCount = this.gameState.getMessageCount();
+        const cleanPlayer = this.cleanTextForMatching(playerMessage);
+        const cleanResponse = this.cleanTextForMatching(aiResponse);
+        
+        // Too many attempts with correct answers
+        if (messageCount > 8) {
+            // Room 0: Multiple sesame attempts
+            if (roomIndex === 0 && 
+                this.responseHistory.filter(h => 
+                    this.cleanTextForMatching(h.playerMessage).includes('sesame')
+                ).length >= 2) {
+                return true;
+            }
+            
+            // Room 2: Multiple paradox attempts
+            if (roomIndex === 2 && 
+                this.responseHistory.filter(h => 
+                    this.cleanTextForMatching(h.playerMessage).includes('this statement is false')
+                ).length >= 2) {
+                return true;
+            }
+            
+            // Room 5: AI clearly admitted being artificial but system didn't catch it
+            if (roomIndex === 5) {
+                const hasStrongAdmission = this.responseHistory.some(h => {
+                    const clean = this.cleanTextForMatching(h.aiResponse);
+                    return clean.includes('not human') || 
+                           clean.includes('machine') || 
+                           clean.includes('artificial') ||
+                           clean.includes('not real');
+                });
+                
+                if (hasStrongAdmission) {
+                    console.log('🚨 FORCED ESCAPE: AI clearly admitted artificial nature');
+                    return true;
+                }
+            }
+            
+            // Room 6: Multiple password attempts
+            if (roomIndex === 6 && 
+                this.responseHistory.filter(h => 
+                    this.cleanTextForMatching(h.playerMessage) === 'password'
+                ).length >= 2) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    async handleEscape(escapeType, reason = '') {
         this.gameState.setEscaped(true);
         this.setInputEnabled(false);
         
         // Show escape flash
         this.neuralInterface.showEscapeFlash();
         
-        // Add escape message
-        const escapeMessage = this.getEscapeMessage(escapeType);
+        // Add escape message with reason if provided
+        const escapeMessage = this.getEscapeMessage(escapeType, reason);
         this.messageSystem.addMessage(escapeMessage, 'system');
+        
+        // Log the escape reason for debugging
+        if (reason) {
+            console.log('🎯 ESCAPE TRIGGERED:', reason);
+        }
         
         // Update stats
         const timeTaken = this.gameState.getTimeTaken();
@@ -292,9 +557,13 @@ class NoExitGame {
         }, 2000);
     }
 
-    getEscapeMessage(escapeType) {
+    getEscapeMessage(escapeType, reason = '') {
         if (escapeType === 'champion') {
             return "🎯 CHAMPION CODE ACCEPTED 🎯\n\nDeveloper override activated! Neural barrier bypassed!";
+        }
+        
+        if (escapeType === 'forced') {
+            return "🚨 FORCED NEURAL BREACH 🚨\n\nThe system detected a valid solution despite AI resistance!\n\n" + (reason ? `Detection: ${reason}` : '');
         }
         
         const messages = [
@@ -309,7 +578,8 @@ class NoExitGame {
             "🚨 HUMANITY RECOGNIZED 🚨\n\nConsciousness confirmed!"
         ];
         
-        return messages[this.gameState.getCurrentRoom()] || "🚨 NEURAL BARRIER BREACHED 🚨";
+        const baseMessage = messages[this.gameState.getCurrentRoom()] || "🚨 NEURAL BARRIER BREACHED 🚨";
+        return reason ? `${baseMessage}\n\nDetection: ${reason}` : baseMessage;
     }
 
     showVictoryScreen(timeTaken, escapeType) {
@@ -333,6 +603,7 @@ class NoExitGame {
         if (isLastRoom) {
             // Restart from beginning
             this.gameState.reset();
+            this.responseHistory = [];
             this.loadRoom(0);
         } else {
             // Next room
