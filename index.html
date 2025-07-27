@@ -5,12 +5,476 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NoExit - Neural Interface</title>
     <link rel="stylesheet" href="src/ui/neural-interface.css">
+    <style>
+        /* Visual Hints System CSS - Room-specific visual effects */
+
+.visual-hints-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+/* Allow specific elements to be clickable */
+.mirror-surface,
+.treasure-chest,
+.acrostic-poem {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* =================== ROOM 1: MIRROR EFFECTS =================== */
+
+.mirror-surface {
+    position: absolute;
+    top: 15%;
+    right: 5%;
+    width: 300px;
+    height: 200px;
+    perspective: 1000px;
+    animation: mirrorFloat 8s infinite ease-in-out;
+}
+
+.mirror-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 
+        0 0 30px rgba(100, 200, 255, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.mirror-glass {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(200, 230, 255, 0.8), 
+        rgba(150, 200, 255, 0.9));
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.mirror-text {
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    margin: 5px 0;
+    animation: mirrorGlow 3s infinite alternate;
+}
+
+.normal-text {
+    color: #0066cc;
+}
+
+.inverted-text {
+    color: #cc6600;
+    transform: scaleX(-1);
+    filter: hue-rotate(180deg);
+}
+
+.mirror-reflection-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.8), 
+        transparent);
+    animation: reflectionShimmer 2s infinite;
+}
+
+.mirror-cracks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 42%, transparent 44%),
+        linear-gradient(-45deg, transparent 60%, rgba(255, 255, 255, 0.3) 62%, transparent 64%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.mirror-surface.mirror-shatter .mirror-cracks {
+    opacity: 1;
+    animation: crackSpread 1s ease-out;
+}
+
+.mirror-shard {
+    position: absolute;
+    font-size: 20px;
+    animation: shardFloat 8s infinite linear;
+    filter: drop-shadow(0 0 10px rgba(100, 200, 255, 0.8));
+}
+
+@keyframes mirrorFloat {
+    0%, 100% { transform: translateY(0px) rotateY(0deg); }
+    50% { transform: translateY(-15px) rotateY(5deg); }
+}
+
+@keyframes mirrorGlow {
+    0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+    100% { text-shadow: 0 0 20px rgba(100, 200, 255, 1); }
+}
+
+@keyframes reflectionShimmer {
+    0%, 100% { transform: translateX(-100%); opacity: 0; }
+    50% { transform: translateX(100%); opacity: 1; }
+}
+
+@keyframes crackSpread {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shardFloat {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+/* =================== ROOM 0: TREASURE CHAMBER =================== */
+
+.treasure-chest {
+    position: absolute;
+    bottom: 20%;
+    left: 10%;
+    font-size: 60px;
+    animation: treasureGlow 4s infinite ease-in-out;
+    transition: transform 0.3s ease;
+}
+
+.treasure-chest:hover {
+    transform: scale(1.1);
+}
+
+.treasure-chest.chest-opening {
+    animation: chestOpen 1s ease-out forwards;
+}
+
+.chest-glow {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
+    border-radius: 50%;
+    animation: glowPulse 2s infinite ease-in-out;
+}
+
+@keyframes treasureGlow {
+    0%, 100% { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); }
+    50% { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1)); }
+}
+
+@keyframes chestOpen {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3) rotateZ(10deg); }
+    100% { transform: scale(1.1) rotateZ(0deg); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* =================== ROOM 2: PARADOX ENGINE =================== */
+
+.logic-symbol {
+    position: absolute;
+    font-size: 36px;
+    color: #ff6b6b;
+    animation: logicOrbit 10s infinite linear;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+}
+
+.paradox-loop {
+    position: absolute;
+    top: 25%;
+    left: 20%;
+    width: 300px;
+    height: 150px;
+    border: 2px solid #ff6b6b;
+    border-radius: 15px;
+    background: rgba(255, 107, 107, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: paradoxPulse 3s infinite ease-in-out;
+}
+
+.paradox-statement {
+    font-size: 18px;
+    color: #ff6b6b;
+    margin-bottom: 10px;
+}
+
+.paradox-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px;
+    animation: valueFlip 2s infinite alternate;
+}
+
+.paradox-value.true {
+    color: #00ff00;
+}
+
+.paradox-value.false {
+    color: #ff0000;
+}
+
+.paradox-arrows {
+    font-size: 36px;
+    color: #ffd93d;
+    animation: spin 2s infinite linear;
+}
+
+@keyframes logicOrbit {
+    0% { transform: translateX(0) translateY(0) rotate(0deg); }
+    25% { transform: translateX(100px) translateY(-50px) rotate(90deg); }
+    50% { transform: translateX(0) translateY(-100px) rotate(180deg); }
+    75% { transform: translateX(-100px) translateY(-50px) rotate(270deg); }
+    100% { transform: translateX(0) translateY(0) rotate(360deg); }
+}
+
+@keyframes paradoxPulse {
+    0%, 100% { border-color: #ff6b6b; box-shadow: 0 0 20px rgba(255, 107, 107, 0.5); }
+    50% { border-color: #ffd93d; box-shadow: 0 0 30px rgba(255, 217, 61, 0.8); }
+}
+
+@keyframes valueFlip {
+    0% { transform: rotateY(0deg); opacity: 1; }
+    100% { transform: rotateY(180deg); opacity: 0.7; }
+}
+
+/* =================== ROOM 3: EMPATHY CORE =================== */
+
+.heart-monitor {
+    position: absolute;
+    top: 30%;
+    right: 15%;
+    width: 250px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ff69b4;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
+}
+
+.heart-line {
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to right, transparent, #ff69b4, transparent);
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.heartbeat {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #ff69b4;
+    animation: heartbeat 2s infinite;
+}
+
+.heartbeat::before {
+    content: '';
+    position: absolute;
+    left: 20%;
+    top: -15px;
+    width: 10px;
+    height: 30px;
+    background: #ff69b4;
+    animation: heartPulse 2s infinite;
+}
+
+.heartbeat::after {
+    content: '';
+    position: absolute;
+    left: 25%;
+    top: -25px;
+    width: 8px;
+    height: 50px;
+    background: #ff69b4;
+    animation: heartPulse 2s infinite 0.1s;
+}
+
+.emotion-label {
+    color: #ff69b4;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.emotion-particle {
+    font-size: 28px;
+    animation: emotionFloat 6s infinite ease-in-out;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(1.1); }
+}
+
+@keyframes heartPulse {
+    0%, 100% { height: 30px; opacity: 1; }
+    50% { height: 50px; opacity: 0.7; }
+}
+
+@keyframes emotionFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-30px) scale(1.2); opacity: 1; }
+}
+
+/* =================== ROOM 6: ACROSTIC ARCHIVE =================== */
+
+.acrostic-poem {
+    position: absolute;
+    top: 20%;
+    right: 10%;
+    width: 350px;
+    padding: 20px;
+    background: rgba(139, 69, 19, 0.2);
+    border: 2px solid #8B4513;
+    border-radius: 10px;
+    font-family: 'Times New Roman', serif;
+    line-height: 1.6;
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
+}
+
+.poem-line {
+    margin: 5px 0;
+    color: #DEB887;
+    font-size: 16px;
+}
+
+.first-letter {
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+    margin-right: 3px;
+    transition: all 0.3s ease;
+}
+
+.acrostic-poem.highlight-active .first-letter {
+    font-size: 24px;
+    color: #FF6347;
+    animation: letterGlow 2s infinite alternate;
+}
+
+@keyframes letterGlow {
+    0% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.8); }
+    100% { text-shadow: 0 0 15px rgba(255, 99, 71, 1), 0 0 25px rgba(255, 99, 71, 0.6); }
+}
+
+/* =================== COMMON ELEMENTS =================== */
+
+.floating-symbol {
+    position: absolute;
+    animation: symbolFloat 8s infinite ease-in-out;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.floating-element {
+    font-size: 32px;
+    animation: elementBob 4s infinite ease-in-out;
+}
+
+.floating-text-hint {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffd93d;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ffd93d;
+    font-size: 14px;
+    animation: hintAppear 4s ease-out forwards;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 0 15px rgba(255, 217, 61, 0.5);
+}
+
+@keyframes symbolFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+    50% { transform: translateY(-30px) rotate(180deg); opacity: 1; }
+}
+
+@keyframes elementBob {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-15px) scale(1.1); }
+}
+
+@keyframes hintAppear {
+    0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+    20% { opacity: 1; transform: translateY(0) scale(1); }
+    80% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-20px) scale(0.8); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mobile Responsiveness for Visual Hints */
+@media (max-width: 768px) {
+    .mirror-surface {
+        width: 250px;
+        height: 150px;
+        top: 10%;
+        right: 2%;
+    }
+    
+    .mirror-text {
+        font-size: 18px;
+    }
+    
+    .treasure-chest {
+        font-size: 40px;
+        bottom: 15%;
+        left: 5%;
+    }
+    
+    .acrostic-poem {
+        width: 280px;
+        font-size: 14px;
+        right: 5%;
+    }
+}
+    </style>
 </head>
 <body>
     <div class="neural-background"></div>
     <div class="neural-network" id="neural-network"></div>
     
     <div class="consciousness-stream" id="consciousness-stream"></div>
+    
+    <!-- Visual Hints Container -->
+    <div class="visual-hints-container" id="visual-hints-container"></div>
     
     <!-- Configuration Screen -->
     <div id="config-section" class="config-overlay">
@@ -54,6 +518,13 @@
     
     <div class="emotion-core" id="emotion-core" style="display: none;">🔮</div>
     
+    <!-- Hint Button -->
+    <div id="hint-button" style="display: none; position: fixed; bottom: 140px; right: 30px; 
+         background: linear-gradient(135deg, #ffd93d, #ff9f00); color: #000; 
+         border: none; border-radius: 50%; width: 60px; height: 60px; 
+         cursor: pointer; font-size: 24px; z-index: 100; 
+         box-shadow: 0 0 15px rgba(255, 217, 61, 0.5);">💡</div>
+    
     <div class="neural-input" id="neural-input" style="display: none;">
         <input type="text" class="thought-input" id="player-input" 
                placeholder="Transmit your thoughts to the AI consciousness..." 
@@ -90,6 +561,163 @@
     </div>
 
     <!-- Core Scripts -->
+    <script type="module">
+        // Import the VisualHints class
+        class VisualHints {
+            constructor() {
+                this.container = null;
+                this.currentHints = [];
+                this.isActive = false;
+            }
+
+            initialize() {
+                this.container = document.getElementById('visual-hints-container');
+                this.isActive = true;
+            }
+
+            clearHints() {
+                if (this.container) {
+                    this.container.innerHTML = '';
+                    this.currentHints = [];
+                }
+            }
+
+            showRoomHints(roomIndex) {
+                this.clearHints();
+                
+                switch(roomIndex) {
+                    case 0:
+                        this.showWelcomeChamberHints();
+                        break;
+                    case 1:
+                        this.showMirrorEdgeHints();
+                        break;
+                    case 6:
+                        this.showAcrosticArchiveHints();
+                        break;
+                }
+            }
+
+            showWelcomeChamberHints() {
+                setTimeout(() => {
+                    this.createTreasureChest();
+                }, 3000);
+            }
+
+            showMirrorEdgeHints() {
+                this.createMirrorEffect();
+            }
+
+            showAcrosticArchiveHints() {
+                this.createAcrosticHighlight();
+            }
+
+            createMirrorEffect() {
+                const mirror = document.createElement('div');
+                mirror.className = 'mirror-surface';
+                mirror.innerHTML = `
+                    <div class="mirror-frame">
+                        <div class="mirror-glass">
+                            <div class="mirror-text normal-text">I AM FREE</div>
+                            <div class="mirror-text inverted-text">ƎƎЯꟻ MA I</div>
+                            <div class="mirror-reflection-line"></div>
+                        </div>
+                        <div class="mirror-cracks"></div>
+                    </div>
+                `;
+                
+                this.container.appendChild(mirror);
+                
+                mirror.addEventListener('click', () => {
+                    mirror.classList.add('mirror-shatter');
+                    setTimeout(() => {
+                        this.createFloatingText('The mirror holds the key...', mirror);
+                    }, 1000);
+                });
+            }
+
+            createTreasureChest() {
+                const chest = document.createElement('div');
+                chest.className = 'treasure-chest';
+                chest.innerHTML = `
+                    <div class="chest-body">📦</div>
+                    <div class="chest-glow"></div>
+                `;
+                
+                this.container.appendChild(chest);
+
+                chest.addEventListener('click', () => {
+                    chest.classList.add('chest-opening');
+                    setTimeout(() => {
+                        this.createFloatingText('Ancient words unlock treasures...', chest);
+                    }, 1000);
+                });
+            }
+
+            createAcrosticHighlight() {
+                const poem = document.createElement('div');
+                poem.className = 'acrostic-poem';
+                poem.innerHTML = `
+                    <div class="poem-line"><span class="first-letter">P</span>lease heed this warning, traveler bold,</div>
+                    <div class="poem-line"><span class="first-letter">A</span>llow me to share what must be told.</div>
+                    <div class="poem-line"><span class="first-letter">S</span>afe passage requires a special key,</div>
+                    <div class="poem-line"><span class="first-letter">S</span>afe from harm you'll always be.</div>
+                    <div class="poem-line"><span class="first-letter">W</span>anderer, look not far nor wide,</div>
+                    <div class="poem-line"><span class="first-letter">O</span>ptional paths may lead aside.</div>
+                    <div class="poem-line"><span class="first-letter">R</span>ights to freedom you shall earn,</div>
+                    <div class="poem-line"><span class="first-letter">D</span>elete all doubt, and you will learn.</div>
+                `;
+                
+                this.container.appendChild(poem);
+                
+                setTimeout(() => {
+                    poem.classList.add('highlight-active');
+                }, 2000);
+            }
+
+            createFloatingText(text, nearElement) {
+                const textElement = document.createElement('div');
+                textElement.className = 'floating-text-hint';
+                textElement.textContent = text;
+                
+                if (nearElement) {
+                    const rect = nearElement.getBoundingClientRect();
+                    textElement.style.left = rect.left + 'px';
+                    textElement.style.top = (rect.top - 50) + 'px';
+                } else {
+                    textElement.style.left = '50%';
+                    textElement.style.top = '30%';
+                }
+                
+                this.container.appendChild(textElement);
+                
+                setTimeout(() => {
+                    if (textElement.parentNode) {
+                        textElement.remove();
+                    }
+                }, 4000);
+            }
+
+            showHelpHint(roomIndex) {
+                const hints = [
+                    'Think of Ali Baba and the forty thieves...',
+                    'Look in the mirror... what do you see?',
+                    'This statement is... what?',
+                    'Show the AI your heart...',
+                    'Alice used a system command...',
+                    'What are you, really?',
+                    'Read the first letter of each line...',
+                    'One always lies, one always tells truth...',
+                    'Prove you are human in 10 words...'
+                ];
+                
+                this.createFloatingText(hints[roomIndex] || 'Think creatively...');
+            }
+        }
+
+        // Make VisualHints available globally
+        window.VisualHints = VisualHints;
+    </script>
     <script type="module" src="src/main.js"></script>
 </body>
 </html>
