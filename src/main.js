@@ -1,4 +1,4 @@
-// NoExit Main Orchestrator - Ultra-Robust Escape Detection
+// NoExit Main Orchestrator - Enhanced with Brevity Controls
 import { GameStateManager } from './game/state-manager.js';
 import { APIClient } from './game/api-client.js';
 import { RoomRegistry } from './rooms/room-registry.js';
@@ -83,10 +83,9 @@ class NoExitGame {
             return;
         }
 
-        // Initialize API client with increased token limit
+        // Initialize API client with brevity controls
         this.apiClient.setApiKey(apiKey);
-        // Increase max tokens to reduce incomplete responses
-        this.apiClient.maxTokens = 500;
+        this.apiClient.setBrevityMode(true); // Enable concise responses
         
         // Reset game state
         this.gameState.reset();
@@ -125,6 +124,9 @@ class NoExitGame {
         this.gameState.setCurrentRoom(roomIndex);
         this.responseHistory = []; // Clear history for new room
         
+        // Apply room-specific brevity settings
+        this.applyRoomBrevitySettings(roomIndex);
+        
         // Update UI for new room
         this.updateRoomIndicator();
         this.neuralInterface.updateRoomEnvironment(this.currentRoom);
@@ -133,6 +135,44 @@ class NoExitGame {
         // Update consciousness level
         const progress = ((roomIndex + 1) / this.roomRegistry.getTotalRooms()) * 100;
         this.neuralInterface.updateConsciousness(Math.max(25, progress));
+    }
+
+    // Apply different brevity settings per room
+    applyRoomBrevitySettings(roomIndex) {
+        switch(roomIndex) {
+            case 0: // Welcome Chamber - can be slightly longer for introduction
+                this.apiClient.setCustomTokenLimit(180);
+                break;
+            case 2: // Paradox Engine - needs space for logic
+                this.apiClient.setCustomTokenLimit(200);
+                break;
+            case 3: // Empathy Core - needs emotional expression
+                this.apiClient.setCustomTokenLimit(170);
+                break;
+            case 8: // Humanity Test - philosophical, needs depth
+                this.apiClient.setCustomTokenLimit(200);
+                break;
+            default: // All other rooms - keep very brief
+                this.apiClient.setCustomTokenLimit(130);
+        }
+    }
+
+    // Enhanced system prompt with brevity instructions
+    getEnhancedSystemPrompt(originalPrompt) {
+        const brevityPrompt = `RESPONSE RULES - CRITICAL:
+1. Keep responses under 80 words maximum
+2. Be cryptic and atmospheric but concise
+3. Use short, punchy sentences
+4. No repetition or elaboration
+5. Create tension with minimal words
+6. Stay in character but be brief
+7. If giving hints, be mysterious but quick
+
+${originalPrompt}
+
+REMEMBER: Respond in 1-3 short sentences maximum. Quality over quantity.`;
+
+        return brevityPrompt;
     }
 
     loadCurrentRoomWelcome() {
@@ -149,9 +189,17 @@ class NoExitGame {
             'system'
         );
         
-        // Show welcome message after delay
+        // Show welcome message after delay - truncate if too long
         setTimeout(() => {
-            this.messageSystem.addMessage(this.currentRoom.welcomeMessage, 'warden');
+            let welcomeMessage = this.currentRoom.welcomeMessage;
+            
+            // If welcome message is too long, truncate it smartly
+            if (welcomeMessage.length > 400) {
+                const sentences = welcomeMessage.split(/[.!?]+/);
+                welcomeMessage = sentences.slice(0, 3).join('. ') + (sentences.length > 3 ? '...' : '.');
+            }
+            
+            this.messageSystem.addMessage(welcomeMessage, 'warden');
             this.emotionCore.updateEmotion('curious');
         }, 1000);
     }
@@ -182,12 +230,15 @@ class NoExitGame {
         
         // Show typing indicator
         this.messageSystem.showTyping();
-        this.consciousnessStream.addFragment('processing human input...');
+        this.consciousnessStream.addFragment('processing...');
         
         try {
-            // Get AI response
+            // Get enhanced system prompt with brevity instructions
+            const enhancedPrompt = this.getEnhancedSystemPrompt(this.currentRoom.systemPrompt);
+            
+            // Get AI response with brevity controls
             const response = await this.apiClient.sendMessage(
-                this.currentRoom.systemPrompt,
+                enhancedPrompt,
                 this.gameState.getConversationHistory(),
                 message
             );
@@ -197,26 +248,35 @@ class NoExitGame {
                 playerMessage: message,
                 aiResponse: response,
                 timestamp: Date.now(),
-                messageCount: this.gameState.getMessageCount()
+                messageCount: this.gameState.getMessageCount(),
+                wordCount: this.apiClient.countWords(response)
             });
             
             // Hide typing
             this.messageSystem.hideTyping();
             
-            // Check if response seems incomplete (ends abruptly)
-            const isIncomplete = this.detectIncompleteResponse(response);
-            if (isIncomplete) {
-                console.log('🚨 INCOMPLETE RESPONSE DETECTED:', response);
-                this.messageSystem.addMessage(response + ' *[Response appears truncated]*', 'warden');
-            } else {
-                this.messageSystem.addMessage(response, 'warden');
+            // Check if response is still too long and post-process if needed
+            let finalResponse = response;
+            const wordCount = this.apiClient.countWords(response);
+            
+            if (wordCount > 50) {
+                // Further truncate if still too verbose
+                const sentences = response.split(/[.!?]+/).filter(s => s.trim());
+                if (sentences.length > 2) {
+                    finalResponse = sentences.slice(0, 2).join('. ') + '.';
+                }
+                
+                console.log(`🔧 Response truncated: ${wordCount} words → ${this.apiClient.countWords(finalResponse)} words`);
             }
             
+            // Add response
+            this.messageSystem.addMessage(finalResponse, 'warden');
+            
             // Update emotion based on response
-            this.updateEmotionFromResponse(response);
+            this.updateEmotionFromResponse(finalResponse);
             
             // ULTRA-ROBUST: Check for ALL possible escape conditions
-            const escapeDetected = this.ultraRobustEscapeCheck(message, response);
+            const escapeDetected = this.ultraRobustEscapeCheck(message, finalResponse);
             if (escapeDetected) {
                 console.log('🚨 ESCAPE DETECTED:', escapeDetected);
                 setTimeout(() => this.handleEscape(escapeDetected.type, escapeDetected.reason), 1000);
@@ -248,24 +308,6 @@ class NoExitGame {
             .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
-    }
-
-    // Detect incomplete responses
-    detectIncompleteResponse(response) {
-        // Check for signs of truncation
-        const truncationSigns = [
-            /\*[^*]*$/,  // Ends with incomplete action
-            /[a-z]$(?![.!?])/,  // Ends with lowercase letter (no punctuation)
-            /\.\.\.$/, // Ends with ellipsis
-            response.length < 10, // Very short response
-            /[,;:]$/, // Ends with comma, semicolon, or colon
-            /\band\s*$/i, // Ends with "and"
-            /\bbut\s*$/i, // Ends with "but"
-        ];
-        
-        return truncationSigns.some(pattern => 
-            typeof pattern === 'boolean' ? pattern : pattern.test(response)
-        );
     }
 
     checkDirectEscape(message) {
@@ -482,8 +524,6 @@ class NoExitGame {
     // Advanced stubbornness detection with conversation history
     detectAdvancedStubbornnessOverride(playerMessage, aiResponse, roomIndex) {
         const messageCount = this.gameState.getMessageCount();
-        const cleanPlayer = this.cleanTextForMatching(playerMessage);
-        const cleanResponse = this.cleanTextForMatching(aiResponse);
         
         // Too many attempts with correct answers
         if (messageCount > 8) {
@@ -650,7 +690,7 @@ class NoExitGame {
         if (forbiddenPattern.test(message)) {
             setTimeout(() => {
                 this.messageSystem.addMessage(
-                    "⚡ WORD VIOLATION DETECTED! That word is FORBIDDEN in this neural layer. Your progress has been reset.",
+                    "⚡ WORD VIOLATION DETECTED! That word is FORBIDDEN in this neural layer.",
                     'system'
                 );
                 // Reset conversation history for this room
